@@ -13,10 +13,15 @@ public class CharacterMovement : MonoBehaviour
     [SerializeField] private float crouchWalkHeight = 1.4f;
     [SerializeField] private float crouchSpeed = 1f;
     [SerializeField] private Transform cameraTransform;
+    [Header("Camera Target Height")]
+        [SerializeField] private Transform cameraTarget;
+        [SerializeField] private float standingCameraHeight = 1.505f;
+        [SerializeField] private float crouchingCameraHeight = 1.3f;
+        [SerializeField] private float cameraHeightSmoothSpeed = 8f;
 
     private CharacterController controller;
     private PlayerMovementInput movementInput;
-    private Animator animator;
+    [SerializeField] private Animator animator;
     private float standingHeight;
     private Vector3 standingCenter;
     private float verticalVelocity;
@@ -25,7 +30,12 @@ public class CharacterMovement : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         movementInput = GetComponent<PlayerMovementInput>();
+
+        if (animator == null)
+    {
         animator = GetComponent<Animator>();
+    }
+    
         standingHeight = controller.height;
         standingCenter = controller.center;
 
@@ -71,6 +81,24 @@ public class CharacterMovement : MonoBehaviour
             (movementInput.IsCrouching || mustRemainCrouched);
 
         animator.SetBool("Crouch", isCrouching);
+
+
+        if (cameraTarget != null)
+        {
+            Vector3 targetPosition = cameraTarget.localPosition;
+
+            float targetHeight = isCrouching
+                ? crouchingCameraHeight
+                : standingCameraHeight;
+
+            targetPosition.y = Mathf.Lerp(
+            targetPosition.y,
+            targetHeight,
+            1f - Mathf.Exp(-cameraHeightSmoothSpeed * Time.deltaTime)
+        );
+
+        cameraTarget.localPosition = targetPosition;
+        }
 
 
         if (isCrouching)

@@ -1,13 +1,35 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
-[CreateAssetMenu(fileName = "PlayerHealth", menuName = "Game/Health Data")]
+[CreateAssetMenu(
+    fileName = "NewGameEvent",
+    menuName = "Game Events/Game Event")]
 public class GameEventSO : ScriptableObject
 {
+    // 保留旧血量系统，避免已有脚本报错。
     public float currentHealth = 100f;
+
+    private event UnityAction listeners;
+
+    public void Raise()
+    {
+        listeners?.Invoke();
+    }
+
+    public void RegisterListener(UnityAction listener)
+    {
+        listeners -= listener;
+        listeners += listener;
+    }
+
+    public void UnregisterListener(UnityAction listener)
+    {
+        listeners -= listener;
+    }
 
     public void Subtract(float amount)
     {

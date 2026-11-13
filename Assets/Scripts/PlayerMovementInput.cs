@@ -46,18 +46,27 @@ public class PlayerMovementInput : MonoBehaviour
     // Try changing this value and see how differently the blend feels.
     [SerializeField] private float dampTime = 0.1f;
 
+    [Header("Casting Movement Lock")]
+    [SerializeField] private EnergyCaster energyCaster;
+
+    private Vector2 rawMoveInput;
     private InputAction moveAction;
     private InputAction sprintAction;
     private InputAction jumpAction;
     private InputAction crouchAction;
-    private Animator animator;
+    [SerializeField] private Animator animator;
 
     /// <summary>
     /// The current input direction, updated every frame. You won't need to
     /// touch this yourself today, but this is what a future movement script
     /// would read to actually move the character (not just animate it).
     /// </summary>
-    public Vector2 MoveInput { get; private set; }
+    public Vector2 MoveInput
+    {
+        get => energyCaster != null && energyCaster.IsCasting
+            ? Vector2.zero : rawMoveInput;
+        private set => rawMoveInput = value;
+    }
     public bool IsSprinting { get; private set; }
     public bool JumpPressedThisFrame { get; private set; }
     public bool IsCrouching { get; private set; }
@@ -72,7 +81,12 @@ public class PlayerMovementInput : MonoBehaviour
     // ------------------------------------------------------------------
     private void Awake()
     {
+        if (energyCaster == null)
+            energyCaster = GetComponent<EnergyCaster>();
+        if (animator == null)
+    {
         animator = GetComponent<Animator>();
+    }
 
         if (inputActions == null)
         {
